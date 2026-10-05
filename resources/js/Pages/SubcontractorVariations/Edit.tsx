@@ -1,0 +1,143 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, useForm, Link } from '@inertiajs/react';
+
+export default function Edit({ variation, projects, subcontractors }: any) {
+    const { data, setData, put, processing, errors } = useForm({
+        project_id: variation.project_id || '',
+        supplier_id: variation.supplier_id || '',
+        variation_number: variation.variation_number || '',
+        description: variation.description || '',
+        amount: variation.amount || '',
+        status: variation.status || 'requested',
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('subcontractor-variations.update', variation.id));
+    };
+
+    return (
+        <AuthenticatedLayout
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Edit Variation</h2>}
+        >
+            <Head title="Edit Variation" />
+
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 bg-white border-b border-gray-200">
+                            
+                            <form onSubmit={submit} className="space-y-6 max-w-2xl">
+                                
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label htmlFor="project_id" className="block text-sm font-medium text-gray-700">Project *</label>
+                                        <select
+                                            id="project_id"
+                                            value={data.project_id}
+                                            onChange={e => setData('project_id', e.target.value)}
+                                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            required
+                                        >
+                                            <option value="">Select Project</option>
+                                            {projects.map((p: any) => (
+                                                <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.project_id && <div className="text-red-500 text-xs mt-1">{errors.project_id}</div>}
+                                    </div>
+                                    <div>
+                                        <label htmlFor="supplier_id" className="block text-sm font-medium text-gray-700">Subcontractor *</label>
+                                        <select
+                                            id="supplier_id"
+                                            value={data.supplier_id}
+                                            onChange={e => setData('supplier_id', e.target.value)}
+                                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            required
+                                        >
+                                            <option value="">Select Subcontractor</option>
+                                            {subcontractors.map((sub: any) => (
+                                                <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                            ))}
+                                        </select>
+                                        {errors.supplier_id && <div className="text-red-500 text-xs mt-1">{errors.supplier_id}</div>}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                    <div>
+                                        <label htmlFor="variation_number" className="block text-sm font-medium text-gray-700">Variation # *</label>
+                                        <input
+                                            id="variation_number"
+                                            type="text"
+                                            value={data.variation_number}
+                                            onChange={e => setData('variation_number', e.target.value)}
+                                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount *</label>
+                                        <input
+                                            id="amount"
+                                            type="number"
+                                            step="0.0001"
+                                            value={data.amount}
+                                            onChange={e => setData('amount', e.target.value)}
+                                            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="status" className="block text-sm font-medium text-gray-700">Status *</label>
+                                    <select
+                                        id="status"
+                                        value={data.status}
+                                        onChange={e => setData('status', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    >
+                                        <option value="requested">Requested</option>
+                                        <option value="approved">Approved</option>
+                                        <option value="rejected">Rejected</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description *</label>
+                                    <textarea
+                                        id="description"
+                                        value={data.description}
+                                        onChange={e => setData('description', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        rows={3}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="flex justify-end gap-4 mt-6 border-t pt-4">
+                                    <Link 
+                                        href={route('subcontractor-variations.index')} 
+                                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-medium text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                        Cancel
+                                    </Link>
+                                    <button 
+                                        type="submit" 
+                                        disabled={processing}
+                                        className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-medium text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                    >
+                                        {processing ? 'Saving...' : 'Update Variation'}
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}

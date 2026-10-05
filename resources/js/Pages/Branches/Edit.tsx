@@ -1,0 +1,102 @@
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, useForm, Link } from '@inertiajs/react';
+
+export default function Edit({ branch }: any) {
+    const { data, setData, put, processing, errors } = useForm({
+        name: branch.name || '',
+        code: branch.code || '',
+        address: branch.address || '',
+        is_active: !!branch.is_active,
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('branches.update', branch.id));
+    };
+
+    return (
+        <AuthenticatedLayout
+            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Edit Branch</h2>}
+        >
+            <Head title="Edit Branch" />
+
+            <div className="py-12">
+                <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="p-6 bg-white border-b border-gray-200">
+                            
+                            <form onSubmit={submit} className="space-y-6 max-w-2xl">
+                                
+                                <div>
+                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Branch Name *</label>
+                                    <input
+                                        id="name"
+                                        type="text"
+                                        value={data.name}
+                                        onChange={e => setData('name', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                        required
+                                    />
+                                    {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
+                                </div>
+
+                                <div>
+                                    <label htmlFor="code" className="block text-sm font-medium text-gray-700">Branch Code</label>
+                                    <input
+                                        id="code"
+                                        type="text"
+                                        value={data.code}
+                                        onChange={e => setData('code', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="address" className="block text-sm font-medium text-gray-700">Address</label>
+                                    <input
+                                        id="address"
+                                        type="text"
+                                        value={data.address}
+                                        onChange={e => setData('address', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                    />
+                                </div>
+
+                                <div className="flex items-center">
+                                    <input
+                                        id="is_active"
+                                        type="checkbox"
+                                        checked={data.is_active}
+                                        onChange={e => setData('is_active', e.target.checked)}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="is_active" className="ml-2 block text-sm text-gray-900">
+                                        Active Branch
+                                    </label>
+                                </div>
+
+                                <div className="flex justify-end gap-4 mt-6 border-t pt-4">
+                                    <Link 
+                                        href={route('branches.index')} 
+                                        className="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-medium text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    >
+                                        Cancel
+                                    </Link>
+                                    <button 
+                                        type="submit" 
+                                        disabled={processing}
+                                        className="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-medium text-sm text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                                    >
+                                        {processing ? 'Saving...' : 'Update Branch'}
+                                    </button>
+                                </div>
+
+                            </form>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AuthenticatedLayout>
+    );
+}
