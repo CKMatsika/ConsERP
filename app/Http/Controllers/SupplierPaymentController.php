@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\SupplierPayment;
 use App\Models\Supplier;
 use App\Models\SupplierInvoice;
+use App\Models\Account;
+use App\Services\Accounting\AccountingPostingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +60,15 @@ class SupplierPaymentController extends Controller
                     ]);
                 }
             }
+
+            $apAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '2000'], ['name' => 'Accounts Payable', 'type' => 'liability']);
+            $bankAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '1010'], ['name' => 'Bank Account', 'type' => 'asset']);
+
+            $postingService = new AccountingPostingService();
+            $postingService->postJournal($orgId, 'SPMT-' . $payment->payment_reference, $payment->payment_date, 'Supplier Payment ' . $payment->payment_reference, [
+                ['account_id' => $apAcc->id, 'debit' => $payment->amount, 'credit' => 0],
+                ['account_id' => $bankAcc->id, 'debit' => 0, 'credit' => $payment->amount],
+            ]);
         });
 
         return redirect()->route('supplier-payments.index')->with('success', 'Supplier payment recorded successfully.');

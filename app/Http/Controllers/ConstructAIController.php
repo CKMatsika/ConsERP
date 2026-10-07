@@ -24,7 +24,8 @@ class ConstructAIController extends Controller
             return redirect()->route('dashboard')->with('error', 'ConstructAI is currently disabled for this organisation.');
         }
 
-        $conversations = AIConversation::where('user_id', $request->user()->id)
+        $conversations = AIConversation::where('organisation_id', $request->user()->active_organisation_id)
+            ->where('user_id', $request->user()->id)
             ->orderBy('updated_at', 'desc')
             ->get();
 
@@ -50,7 +51,10 @@ class ConstructAIController extends Controller
 
         $conversation = null;
         if (!empty($validated['conversation_id'])) {
-            $conversation = AIConversation::find($validated['conversation_id']);
+            $conversation = AIConversation::where('id', $validated['conversation_id'])
+                ->where('organisation_id', $orgId)
+                ->where('user_id', $user->id)
+                ->firstOrFail();
         }
 
         if (!$conversation) {

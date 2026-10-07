@@ -6,6 +6,8 @@ use App\Models\SalesInvoice;
 use App\Models\Customer;
 use App\Models\SalesOrder;
 use App\Models\Project;
+use App\Models\Account;
+use App\Services\Accounting\AccountingPostingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -47,10 +49,22 @@ class SalesInvoiceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['organisation_id'] = $request->user()->active_organisation_id;
+        $orgId = $request->user()->active_organisation_id;
+        $validated['organisation_id'] = $orgId;
         $validated['amount_paid'] = 0;
 
-        SalesInvoice::create($validated);
+        $invoice = SalesInvoice::create($validated);
+
+        if (in_array($invoice->status, ['sent', 'paid'])) {
+            $arAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '1200'], ['name' => 'Accounts Receivable', 'type' => 'asset']);
+            $revAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '4000'], ['name' => 'Construction Revenue', 'type' => 'revenue']);
+
+            $postingService = new AccountingPostingService();
+            $postingService->postJournal($orgId, 'INV-' . $invoice->invoice_number, $invoice->issue_date, 'Sales Invoice ' . $invoice->invoice_number, [
+                ['account_id' => $arAcc->id, 'debit' => $invoice->total_amount, 'credit' => 0],
+                ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $invoice->total_amount],
+            ]);
+        }
 
         return redirect()->route('sales-invoices.index')->with('success', 'Sales Invoice created successfully.');
     }

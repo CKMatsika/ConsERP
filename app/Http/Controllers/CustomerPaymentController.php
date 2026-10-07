@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\CustomerPayment;
 use App\Models\Customer;
 use App\Models\SalesInvoice;
+use App\Models\Account;
+use App\Services\Accounting\AccountingPostingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +60,15 @@ class CustomerPaymentController extends Controller
                     ]);
                 }
             }
+
+            $bankAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '1010'], ['name' => 'Bank Account', 'type' => 'asset']);
+            $arAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '1200'], ['name' => 'Accounts Receivable', 'type' => 'asset']);
+
+            $postingService = new AccountingPostingService();
+            $postingService->postJournal($orgId, 'PMT-' . $payment->payment_reference, $payment->payment_date, 'Customer Receipt ' . $payment->payment_reference, [
+                ['account_id' => $bankAcc->id, 'debit' => $payment->amount, 'credit' => 0],
+                ['account_id' => $arAcc->id, 'debit' => 0, 'credit' => $payment->amount],
+            ]);
         });
 
         return redirect()->route('customer-payments.index')->with('success', 'Customer payment recorded successfully.');

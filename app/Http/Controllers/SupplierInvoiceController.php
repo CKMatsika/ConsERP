@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\SupplierInvoice;
 use App\Models\Supplier;
 use App\Models\PurchaseOrder;
+use App\Models\Account;
+use App\Services\Accounting\AccountingPostingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -43,10 +45,22 @@ class SupplierInvoiceController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        $validated['organisation_id'] = $request->user()->active_organisation_id;
+        $orgId = $request->user()->active_organisation_id;
+        $validated['organisation_id'] = $orgId;
         $validated['amount_paid'] = 0;
 
-        SupplierInvoice::create($validated);
+        $invoice = SupplierInvoice::create($validated);
+
+        if (in_array($invoice->status, ['received', 'approved'])) {
+            $expenseAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '5000'], ['name' => 'Cost of Goods / Expense', 'type' => 'expense']);
+            $apAcc = Account::firstOrCreate(['organisation_id' => $orgId, 'code' => '2000'], ['name' => 'Accounts Payable', 'type' => 'liability']);
+
+            $postingService = new AccountingPostingService();
+            $postingService->postJournal($orgId, 'BILL-' . $invoice->invoice_number, $invoice->issue_date, 'Supplier Invoice ' . $invoice->invoice_number, [
+                ['account_id' => $expenseAcc->id, 'debit' => $invoice->total_amount, 'credit' => 0],
+                ['account_id' => $apAcc->id, 'debit' => 0, 'credit' => $invoice->total_amount],
+            ]);
+        }
 
         return redirect()->route('supplier-invoices.index')->with('success', 'Supplier invoice created successfully.');
     }
