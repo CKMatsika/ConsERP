@@ -18,6 +18,13 @@ class SalesInvoice extends Model
         'customer_id',
         'sales_order_id',
         'project_id',
+        'quotation_id',
+        'boq_id',
+        'invoice_type',
+        'description',
+        'certificate_reference',
+        'subcontractor_certificate_id',
+        'income_account_id',
         'invoice_number',
         'issue_date',
         'due_date',
@@ -51,5 +58,25 @@ class SalesInvoice extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class);
+    }
+
+    public function boq(): BelongsTo
+    {
+        return $this->belongsTo(Boq::class);
+    }
+
+    public function subcontractorCertificate(): BelongsTo
+    {
+        return $this->belongsTo(SubcontractorCertificate::class);
+    }
+
+    public function incomeAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'income_account_id');
     }
 }

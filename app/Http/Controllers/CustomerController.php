@@ -24,6 +24,10 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->user()->active_organisation_id) {
+            return redirect()->route('organisations.create')->with('error', 'Please create or switch to an active organisation first.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'trading_name' => 'nullable|string|max:255',
